@@ -1,0 +1,218 @@
+# 64 `Set`集合和`List`集合独特的特点
+
+`Set`集合和`List`集合是 Java 集合框架中两种不同类型的集合，它们各自有独特的特点：
+
+**List 集合的特点**：
+
+1. **有序性**：List 集合中的元素是有序的，即它们插入的顺序和取出的顺序是一致的。
+2. **元素可重复**：List 允许集合中有重复的元素，即同一个对象可以添加到 List 中多次。
+3. **索引访问**：List 提供基于索引的访问方式，可以通过索引（位置）快速访问集合中的元素。
+4. **典型实现**：ArrayList 和 LinkedList 是 List 接口的两个常用实现，前者基于动态数组，后者基于链表。
+
+**Set 集合的特点**：
+
+1. **无序性**：Set 集合中的元素是无序的，插入和取出的顺序可能不一致（注意：某些 Set 实现如 LinkedHashSet 是有序的）。
+2. **元素唯一性**：Set 不允许有重复的元素，集合中的每个元素都必须是唯一的。
+3. **无索引访问**：Set 不支持基于索引的访问，元素的访问必须通过迭代器等方式进行。
+4. **典型实现**：HashSet、LinkedHashSet 和 TreeSet 是 Set 接口的常用实现。HashSet 是最常用的 Set 实现，基于哈希表；LinkedHashSet 维持了元素的插入顺序；而 TreeSet 是基于红黑树实现，元素按照排序规则排列。
+
+总的来说，List 和 Set 的主要区别在于**List 允许重复的元素并且元素是有序的**，而**Set 不允许重复元素且通常元素是无序的**（除非使用特定的实现，如 LinkedHashSet）。这些特性决定了它们适用于不同的编程场景。
+
+# 65 自定义注解中，如果您为一个注解属性提供了默认值，那么这个属性变成可选的。
+
+在 Java 自定义注解中，如果您为一个注解属性提供了默认值，比如`String regexp() default "";`，那么在使用该注解时，指定这个属性变成可选的。如果没有提供默认值（比如只声明`String regexp();`），那么在使用这个注解时就必须显式提供该属性的值，否则编译器会报错。
+
+# 66 使用`Pattern`和`Matcher`与`String.matches()`整体匹配时的 dui'b
+
+是的，这两种写法基本上达到了相同的效果，都是用来检查字符串是否匹配给定的正则表达式，但它们在内部工作方式和性能上有些微的差异。
+
+### 使用`Pattern`和`Matcher`（第一种写法）：
+
+```java
+Pattern pattern = Pattern.compile(regStr);
+Matcher matcher = pattern.matcher(strValue);
+return matcher.find();
+```
+
+这种方法涉及到编译正则表达式为`Pattern`对象，然后使用这个对象来创建一个`Matcher`，最后使用`matcher.find()`来查找字符串中是否存在匹配正则表达式的子序列。这里有两点需要注意：
+
+1. `matcher.find()`在这个上下文中可能不是最佳选择，因为它用于查找输入字符串中的多个子序列，这可能会与整体匹配的意图相冲突。对于完全匹配的场景，`matcher.matches()`会是更加合适的方法，因为它要求整个区域都匹配正则表达式。
+2. 当您需要重复使用同一正则表达式时，使用`Pattern`的好处在于，正则表达式只编译一次，然后可以多次用于创建`Matcher`对象，这可以提高性能。
+
+### 使用`String.matches()`（第二种写法）：
+
+```java
+return value.toString().matches(regStr);
+```
+
+这种方法更简洁，它直接在字符串对象上调用`matches()`方法，并传入正则表达式字符串。如果字符串符合正则表达式定义的模式，则返回`true`。在内部，`String.matches()`实际上也是创建了`Pattern`和`Matcher`对象，但这个过程是隐藏的。这种写法每次调用时都会编译正则表达式，所以如果在一个循环或频繁调用的情况下使用这种方法，可能会比直接使用`Pattern`和`Matcher`对象的方式效率低下。
+
+### 关于正则表达式`"^[0-1]$"`：
+
+对于这个正则表达式，由于使用了开始`^`和结束`$`定界符，它确实要求整个字符串必须是`0`或`1`，这是一种整体匹配。
+
+综上所述，如果你的意图是检查字符串是否完全匹配正则表达式（在这个例子中是只包含单个字符`0`或`1`），那么你应该在使用第一种写法时使用`matcher.matches()`而不是`matcher.find()`。而如果你选择简便的第二种写法，记住它适用于不需要频繁匹配的场景。
+
+# 67 Vue 的`activated`方法
+
+Vue 的`activated`方法是与`keep-alive`组件一起使用时特有的生命周期钩子。当一个被`keep-alive`缓存的组件被激活时，`activated`钩子就会被触发。这通常发生在以下两种情况下：
+
+1. 当组件第一次被缓存显示时，`activated`钩子在组件的`mounted`钩子之后被调用。
+2. 当缓存的组件再次被重新插入 DOM 时，`activated`钩子会被触发，但此时不会再次执行`mounted`钩子。
+
+因此，`activated`钩子在组件的生命周期中大致的位置是在`created`之后，但在两种情况下有所不同：
+
+- 对于初次渲染，`activated`是在`mounted`之后被调用。
+- 对于由`keep-alive`缓存的组件，当它们重新被激活时，`activated`是在重新插入 DOM 后被调用，但不再经过`mounted`过程。
+
+这意味着`activated`钩子适用于需要在组件每次激活时运行的任务，如拉取数据或重置状态。这与`created`和`mounted`钩子不同，这两个钩子只在组件实例被创建和初次插入 DOM 时分别被调用一次。
+
+# 68 在 Vue 中，将某个方法抽取出来作为公共组件
+
+原来的方法：
+
+```
+<script>
+export default {
+  methods: {
+ // 获取树形菜单分类列表，带层级
+    getCategories() {
+      //这里的`$http`实际上就是axios,只是在main.js中起了一个别名
+      this.$http({
+        // 解读这里的url是获取后端分级菜单列表的url地址，即获取带层级的商品分类表`commodity_category`所有数据
+        // url: 'http://localhost:9090/commodity/category/list/tree',
+
+        // 请求的url
+        // 就是 http://localhost:5050/api/commodity/category/list/tree
+        url: this.$http.adornUrl('/commodity/category/list/tree'),
+        method: 'get'
+      }).then(({data}) => { //这里的{data} 是对象解构，解构了上面url请求后端返回来的数据，
+        // responseData对象的data属性
+        //输出
+        // console.log("getCategories()方法中 .then(({data}) => {..) 返回的data= ", data);
+        //返回需要展示的数据 data.data.data
+        //如果使用{data}, 得到的要展示的数据使用 data.data 即可，因为解构了一层
+
+        //将后端返回来的数据，绑定到数据池的data属性 注意绑定数据后，页面就会相应地变化！
+        this.data = data.data;
+      })
+    },
+    }
+    }
+</script>
+```
+
+进行抽取：
+
+在 Vue 中，将某个方法抽取出来作为公共组件使用通常涉及以下几个步骤：
+
+1. **创建一个公共的 JavaScript 文件**：创建一个新的 JS 文件用于存放公共方法。例如，你可以创建一个名为 `categoryService.js` 的文件，用于存放与分类相关的服务方法。
+
+2. **编写公共方法**：在 `categoryService.js` 文件中，定义一个函数，例如 `getCategories`，并导出这个函数。确保这个方法返回一个 Promise，因为你可能需要进行异步操作（如 Axios 请求）。
+
+3. **在组件中导入和使用公共方法**：在你的 Vue 组件中，导入 `categoryService.js` 文件，并在需要的地方调用 `getCategories` 方法。
+
+下面是一个如何实现这一过程的例子：
+
+**1. 创建 `categoryService.js` 文件**：
+
+```javascript
+// categoryService.js
+import axios from 'axios';
+
+export const getCategories = () => {
+  return axios({
+    url: 'http://localhost:9090/commodity/category/list/tree',
+    method: 'get'
+  });
+}
+```
+
+**2. 在 Vue 组件中使用 `getCategories` 方法**：
+
+在你的 Vue 组件中，导入这个方法并在生命周期钩子或者其他逻辑中调用它：
+
+```vue
+<script>
+import { getCategories } from './services/categoryService'; // 假设categoryService.js位于services文件夹
+
+export default {
+  data() {
+    return {
+      data: [], //树形菜单的数据
+      // 其他数据...
+    };
+  },
+  methods: {
+    // 其他方法...
+
+    fetchCategories() {
+      getCategories().then(({ data }) => {
+        this.data = data.data;
+      }).catch(error => {
+        console.error('获取分类列表失败', error);
+        // 处理错误
+      });
+    }
+  },
+  created() {
+    this.fetchCategories();
+  }
+};
+</script>
+```
+
+在这个例子中，`getCategories` 函数被抽取到 `categoryService.js` 文件中，并在组件中通过 `fetchCategories` 方法使用。这种方式使得 `getCategories` 方法可以在多个组件中重用，减少代码冗余并提高可维护性。
+
+# 69 判断字符串是否有内容的方法
+
+**方法 1: StringUtils.hasText(search)**
+
+```
+import org.springframework.util.StringUtils;
+
+ //先创建QueryWrapper，可以将我们的检索条件封装到QueryWrapper对象
+        QueryWrapper<Furn> queryWrapper = Wrappers.query();
+        //判断search是否有内容
+        if (StringUtils.hasText(search)){
+            //queryWrapper.like("name",search);形参第一个位置"name" 是和数据库表的字段匹配 第二个位置是检索条件
+            queryWrapper.like("name",search);
+        }
+
+
+        //如果带条件就按照条件进行分页，如果不带条件就是正常的分页查询
+        Page<Furn> page = furnService.page(new Page<>(pageNum, pageSize), queryWrapper);
+
+```
+
+**方法 2: StringUtils.isNotBlank(key)**
+
+```
+import org.apache.commons.lang.StringUtils;
+
+//判断key是否携带的有查询条件-希望是一组独立的检索条件(使用lambda表达式的形式即可)
+//StringUtils.isNotBlank(key) 判断传入的 key 为非空或者不是全部为空格/空白字符
+        if (StringUtils.isNotBlank(key)) {
+            // wrapper.and((obj) -> {
+            wrapper.and(obj -> {
+                obj.eq("id", key).or().like("name", key);
+            });
+
+        }
+
+
+
+```
+
+在 Java 中，`StringUtils.isNotBlank(CharSequence cs)` 方法来自 Apache Commons Lang 库。这个方法用于检测传入的字符串 `cs` 是否不为空（""）、不为 null 且至少包含一个非空白（空格、换行、tab 等）字符。
+
+具体到 `StringUtils.isNotBlank(key)` 的使用场景：
+
+- 当 `key` 为 null 时，返回 `false`。
+- 当 `key` 是空字符串（""）时，返回 `false`。
+- 当 `key` 只包含空白字符（例如空格、tab、换行符等）时，返回 `false`。
+- 当 `key` 包含至少一个非空白字符时，返回 `true`。
+
+因此，这个方法在处理用户输入或数据检索时非常有用，因为它可以帮助你忽略完全空白的字符串，这些字符串在许多情况下是无意义的，例如，在搜索查询中用户只输入了空格。
+
+在你的代码中，`StringUtils.isNotBlank(key)` 用于确保 `key` 包含实际的搜索内容。如果 `key` 不为空且不只是空白字符，那么代码会进入 `if` 语句块，并构造一个查询条件，这个查询条件在数据库查询中会作为 `WHERE` 子句的一部分，根据 `id` 或 `name` 字段进行过滤。
