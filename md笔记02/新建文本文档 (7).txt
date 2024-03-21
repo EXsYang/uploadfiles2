@@ -1,0 +1,184 @@
+# 53 ElementUI Form 表单校验器细节
+
+```
+var validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.checkPass !== '') {
+            this.$refs.ruleForm.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+```
+
+`var validatePass` 是定义的校验器规则，将定义的校验器规则 `validatePass`传到`rules.pass.validator` 属性位置，即可使用定义好的校验器规则
+
+`validator` 校验器
+
+方式 1: 传入在外部定义好的校验器规则
+
+```
+ rules: {
+          pass: [
+            { validator: validatePass, trigger: 'blur' }
+          ],
+```
+
+方式 2: 直接传入校验器规则
+
+是的，你可以直接在属性位置传入一个箭头函数作为校验器规则。在 Element UI 的 Form 组件中，`validator` 是用来自定义校验规则的，它可以接受一个函数，该函数接收三个参数：`rule`、`value` 和 `callback`。
+
+- `rule` 参数是描述校验规则的对象。
+- `value` 参数是当前表单项的值。
+- `callback` 是一个必须被调用的回调函数，用来指示校验是否通过。如果校验通过，直接调用 `callback()` 即可。如果校验失败，则调用 `callback(new Error('错误信息'))` 来显示错误信息。
+
+因此，你可以直接在 `rules` 对象中对应的属性里定义一个箭头函数作为校验规则，如你的方式 2 所示。这样的做法是完全有效的，并且在实际开发中是常用的一个模式，特别是当你需要对某个表单项应用特定的校验逻辑时。
+
+下面是你的方式 2 的校验规则，这是正确的用法：
+
+```
+rules: {
+  pass: [
+    {
+      validator: (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          // 校验通过
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+}
+
+```
+
+这段代码表示：当表单项 `pass` 失去焦点时（即 `trigger: 'blur'`），会触发这个箭头函数进行校验。如果用户没有输入密码（`value === ''`），则显示错误信息；否则，通过校验（调用 `callback()` 无参数）。
+
+```
+<el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
+  <el-form-item label="密码" prop="pass">
+    <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+  </el-form-item>
+  <el-form-item label="确认密码" prop="checkPass">
+    <el-input type="password" v-model="ruleForm.checkPass" autocomplete="off"></el-input>
+  </el-form-item>
+  <el-form-item label="年龄" prop="age">
+    <el-input v-model.number="ruleForm.age"></el-input>
+  </el-form-item>
+  <el-form-item>
+    <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
+    <el-button @click="resetForm('ruleForm')">重置</el-button>
+  </el-form-item>
+</el-form>
+<script>
+  export default {
+    data() {
+      var checkAge = (rule, value, callback) => {
+        if (!value) {
+          return callback(new Error('年龄不能为空'));
+        }
+        setTimeout(() => {
+          if (!Number.isInteger(value)) {
+            callback(new Error('请输入数字值'));
+          } else {
+            if (value < 18) {
+              callback(new Error('必须年满18岁'));
+            } else {
+              callback();
+            }
+          }
+        }, 1000);
+      };
+      var validatePass = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请输入密码'));
+        } else {
+          if (this.ruleForm.checkPass !== '') {
+            this.$refs.ruleForm.validateField('checkPass');
+          }
+          callback();
+        }
+      };
+      var validatePass2 = (rule, value, callback) => {
+        if (value === '') {
+          callback(new Error('请再次输入密码'));
+        } else if (value !== this.ruleForm.pass) {
+          callback(new Error('两次输入密码不一致!'));
+        } else {
+          callback();
+        }
+      };
+      return {
+        ruleForm: {
+          pass: '',
+          checkPass: '',
+          age: ''
+        },
+        rules: {
+          pass: [
+            { validator: validatePass, trigger: 'blur' }
+          ],
+          checkPass: [
+            { validator: validatePass2, trigger: 'blur' }
+          ],
+          age: [
+            { validator: checkAge, trigger: 'blur' }
+          ]
+        }
+      };
+    },
+    methods: {
+      submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            alert('submit!');
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+      },
+      resetForm(formName) {
+        this.$refs[formName].resetFields();
+      }
+    }
+  }
+</script>
+```
+
+# 54 普通的 `<script>` 代码块中，将一个箭头函数直接用作对象的属性
+
+在普通的 `<script>` 代码块中，将一个箭头函数直接用作对象的属性值是完全可行的，这不仅适用于 Vue 或 Element UI 的规则，也适用于 JavaScript 对象的通常行为。但要注意，这里的“属性位置”主要指的是对象内部，作为对象的一个属性值。
+
+下面是一个在普通 `<script>` 代码块中的例子，假设我们不在 Vue 的上下文中，而只是处理一个普通的 JavaScript 对象：
+
+```html
+<script>
+// 假设我们有一个对象，它代表一个任务处理器
+const taskHandler = {
+  // 这个任务处理器有一个方法，该方法接受一个回调函数
+  // 我们在这里直接使用箭头函数作为属性的值
+  process: (task) => {
+    // 假设的任务处理逻辑
+    if (task === 'complex') {
+      console.log('处理复杂任务');
+    } else {
+      console.log('处理简单任务');
+    }
+  },
+};
+
+// 使用这个对象的方法
+taskHandler.process('complex');
+taskHandler.process('simple');
+</script>
+```
+
+在这个例子中，`taskHandler` 对象有一个 `process` 属性，它直接被赋予了一个箭头函数。这个箭头函数接受一个 `task` 参数，并根据任务的类型打印不同的消息。
+
+这个模式同样适用于定义事件处理器、定时器回调、或者任何需要函数作为参数的场景。只要 JavaScript 代码可以运行，你就可以在对象属性位置使用箭头函数。箭头函数（和普通函数）作为对象属性（或方法）是 JavaScript 对象字面量语法的一部分。
