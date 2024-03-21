@@ -1,0 +1,466 @@
+# 55 在 JavaScript 中使用普通函数和箭头函数定义对象的方法或属性
+
+在 JavaScript 中，你可以以多种方式定义对象的方法或属性。箭头函数和普通函数是其中两种常用的方式。这两种方式有一些关键的区别，特别是在 `this` 绑定的行为上。下面我将通过例子来展示这两种不同的定义方式：
+
+### 普通函数定义方式
+
+使用普通函数定义对象的方法时，函数中的 `this` 指向的是调用该函数的对象（除非函数被非方法式调用）。
+
+```html
+<script>
+const person = {
+  name: 'Alice',
+  greet: function() {
+    console.log('Hello, ' + this.name);
+  }
+};
+
+person.greet(); // 输出: Hello, Alice
+</script>
+```
+
+在这个例子中，`greet` 是用普通函数定义的。当调用 `person.greet()` 时，`this` 在 `greet` 函数内部指向 `person` 对象。
+
+### 箭头函数定义方式
+
+箭头函数没有自己的 `this`，它会捕获其所在上下文的 `this` 值，作为自己的 `this` 值，因此箭头函数内部的 `this` 是词法绑定的。
+
+```html
+<script>
+const person = {
+  name: 'Bob',
+  greet: () => {
+    console.log('Hello, ' + this.name);
+  }
+};
+
+person.greet(); // 可能输出: Hello, （如果在全局作用域中，this.name 未定义的话）
+</script>
+```
+
+在这个例子中，`greet` 是用箭头函数定义的。如果 `greet` 方法在全局作用域中被调用（如示例中那样直接调用 `person.greet()`），那么 `this` 并不会指向 `person` 对象（如果是在严格模式下，`this` 将是 `undefined`；如果是在非严格模式下，`this` 将指向全局对象 `window`）。这是因为箭头函数不绑定 `this`，它捕获了定义时所在上下文的 `this` 值。
+
+### 对比
+
+1. **`this` 绑定**：
+
+   - **普通函数**：`this` 指向调用函数时的上下文对象。
+   - **箭头函数**：没有自己的 `this`，它会捕获定义时所在的上下文中的 `this`。
+
+2. **语法简洁**：
+
+   - **普通函数**：可能更适合需要多步操作或包含多个语句的场景。
+   - **箭头函数**：更简洁，适用于单行表达式或直接返回值的场景。
+
+3. **使用场景**：
+   - **普通函数**：更适合作为方法使用，尤其是当你需要引用对象本身时（通过 `this` 关键字）。
+   - **箭头函数**：适用于不需要绑定 `this` 的场景，如事件处理器、定时器、Promise 回调等。
+
+在实际编程中，选择哪种方式取决于具体的场景和需求。
+
+# 56 JavaScript 的判断条件中可以使用正则表达式.test(value) 进行判断
+
+正则表达式.test(value) 返回一个 boolean 值
+
+```
+//增加校验器
+validator: (rule, value, callback) => {
+  if (value === '') {
+    callback(new Error('检索首字母必须填写'));
+  }else if (!/^[a-zA-Z]$/.test(value)){ // 必须是 a-z 或者 A-Z
+  // 如果不满足 a-z 或者 A-Z 就会走到这里
+    callback(new Error('检索首字母必须是a-z 或者 A-Z'));
+  }else {
+    callback();
+  }
+},
+```
+
+`.test(value)`是一个方法，用来检查`value`是否符合前面的正则表达式。如果`value`符合（即是一个单独的英文字母），`.test(value)`返回`true`；否则返回`false`。
+
+关于您的问题：“是否可以使用`if (!/^[a-zA-Z]$/)`这样的用法？”答案是：这种用法几乎是正确的，但是您可能遗漏了一个重要的细节——正则表达式应用于整个字符串。在您提供的例子中，由于遗漏了`.test(value)`部分，所以代码不完整，无法执行。完整的用法应该是`if (!/^[a-zA-Z]$.test(value)) { ... }`，这样才能正确地执行测试。
+
+简而言之，`.test(value)`是必须的，因为它是正则表达式对象的方法，用于测试字符串`value`是否符合正则表达式定义的模式。没有它，正则表达式本身并不能自动应用于任何字符串或执行任何操作。
+
+# 57 登陆界面拿不到验证码和上传图片也在网关报错："Connection prematurely closed BEFORE response"
+
+登陆界面拿不到验证码图片
+
+```
+2024-03-14 21:45:45.712  WARN 7416 --- [ctor-http-nio-8] r.netty.http.client.HttpClientConnect    : [id: 0x1503be2e, L:0.0.0.0/0.0.0.0:64195 ! R:/192.168.0.37:8080] The connection observed an error
+
+reactor.netty.http.client.PrematureCloseException: Connection prematurely closed BEFORE response
+
+2024-03-14 21:45:45.714 ERROR 7416 --- [ctor-http-nio-8] a.w.r.e.AbstractErrorWebExceptionHandler : [d30de5c0] 500 Server Error for HTTP GET "/api/captcha.jpg?uuid=4561d7bb-9402-412c-8ef2-6ba0ee84a3df%20HTTP/1.1"
+
+reactor.netty.http.client.PrematureCloseException: Connection prematurely closed BEFORE response
+```
+
+确保 `hspliving-service`、`hspliving-commodity` 和 `renren-fast` 服务实例都正常运行，并已正确注册到 Nacos。**重启 renren-fast 后端项目**
+
+上传图片也报错
+
+```
+2024-03-15 22:34:06.543  WARN 13136 --- [ctor-http-nio-2] r.netty.http.client.HttpClientConnect    : [id: 0x258d7831, L:0.0.0.0/0.0.0.0:51736 ! R:/192.168.0.36:7070] The connection observed an error
+
+reactor.netty.http.client.PrematureCloseException: Connection prematurely closed BEFORE response
+
+2024-03-15 22:34:06.544 ERROR 13136 --- [ctor-http-nio-2] a.w.r.e.AbstractErrorWebExceptionHandler : [53c8d94d] 500 Server Error for HTTP GET "/api/service/oss/policy?t=1710513246249"
+
+reactor.netty.http.client.PrematureCloseException: Connection prematurely closed BEFORE response
+
+
+```
+
+**重启 Nacos 和 service 后端项目**
+
+可能的原因为 服务器端的上传 Policy 和签名 放在了 Nacos, 但是如果重启了 Nacos 可能，service 后端项目没有及时拿回来
+
+---
+
+# 58 `javax.validation.constraints`和`org.hibernate.validator.constraints`。下的@NotBlank 注解区别
+
+#### 建议使用`javax.validation.constraints.@NotBlank`来保持代码的现代性和兼容性。
+
+在 Java 的 Bean 验证框架中，`@NotBlank`注解用于校验字符串，确保被注解的字段不仅非空（null），而且在去除首尾空白字符后至少包含一个字符。不过，这个注解存在于两个不同的包中，它们分别是`javax.validation.constraints`和`org.hibernate.validator.constraints`。下面是它们各自的功能和区别：
+
+1. **`javax.validation.constraints.@NotBlank`**:
+
+   - 这是 Bean Validation API（即 Java EE 的一部分）中的一个标准注解。
+   - 它用于确保对应的字符串非空，且至少包含一个非空白字符。
+   - 这个注解是 Java 标准的一部分，不依赖于具体的实现。也就是说，不管你使用哪个 Bean 验证提供者（比如 Hibernate Validator 或 Apache BVal），这个注解都应该按预期工作。
+
+2. **`org.hibernate.validator.constraints.@NotBlank`**:
+   - 这个注解曾经是 Hibernate Validator 提供的一个特定功能，这是 Bean Validation 的一个具体实现。
+   - 它和`javax.validation.constraints.@NotBlank`功能相似，都是用来校验字符串非空且不全由空白字符组成。
+   - 不过，从 Hibernate Validator 5.x 开始，这个注解已经被标记为过时（deprecated），因为 Bean Validation 2.0（Hibernate Validator 6.x 及以上）引入了自己的`@NotBlank`注解，随之`org.hibernate.validator.constraints.@NotBlank`就不再建议使用了。
+
+**区别**:
+
+- **来源**: `javax.validation.constraints.@NotBlank`来自 Java EE 的 Bean Validation API，是一个标准；而`org.hibernate.validator.constraints.@NotBlank`是特定于 Hibernate Validator 的。
+- **推荐使用**: 推荐使用`javax.validation.constraints.@NotBlank`，因为它是标准的一部分，而且具有更广泛的兼容性。
+- **版本**: 如果你使用的是较老的 Hibernate Validator 版本（5.x 及以下），你可能还会遇到`org.hibernate.validator.constraints.@NotBlank`。但在新版本中，应优先使用`javax.validation.constraints.@NotBlank`，因为它遵循了最新的 Bean Validation 2.0 标准。
+
+因此，如果没有特殊理由需要兼容老版本的 Hibernate Validator，**建议使用`javax.validation.constraints.@NotBlank`来保持代码的现代性和兼容性。**
+
+# 59 List 集合对象.ForEach((item) -> {})，拉姆达表达式的应用
+
+Iterable 接口中方法的源码如下:
+
+```
+  default void forEach(Consumer<? super T> action) {
+        Objects.requireNonNull(action);
+        for (T t : this) {
+            action.accept(t);
+        }
+    }
+```
+
+这个`forEach`方法可以直接传入一个 lambda 表达式。
+
+在 Java 中，`Consumer<? super T>`是一个函数式接口，它代表接受单个输入参数且不返回结果的操作。具体到这个接口，它的`accept(T t)`方法接受一个类型为`T`的参数。在这个上下文中，`T`是你的集合或其他可迭代对象中元素的类型。
+
+因此，当你调用这个`forEach`方法时，可以传入一个符合`Consumer`接口的 lambda 表达式。这个 lambda 表达式接受一个类型为`T`的参数，并执行一些操作，但不返回任何值。这里是一个例子：
+
+假设有一个`List<String>`，并想要打印列表中的每个元素，可以这样写：
+
+```java
+List<String> list = Arrays.asList("Apple", "Banana", "Cherry");
+list.forEach(s -> System.out.println(s));
+```
+
+在这个例子中，`s -> System.out.println(s)`就是一个 lambda 表达式，它符合`Consumer<String>`接口的要求：它接受一个字符串（列表中的一个元素）并执行一个操作（在这个案例中，是打印该字符串）。
+
+因此，`forEach`方法不仅可以接受一个 lambda 表达式，而且这也是它的常见用法，这使得对集合中的每个元素进行迭代操作变得简单和直观。
+
+---
+
+```
+@RequestMapping("/save")
+    // @RequiresPermissions("commodity:brand:save")
+    public R save(@Validated @RequestBody BrandEntity brand,
+                  BindingResult result) {
+
+        //先创建一个map,用于收集校验的错误
+        HashMap<String, String> map = new HashMap<>();
+
+        if (result.hasErrors()) {
+            //如果有校验错误，就返回错误信息
+            //遍历result, 将错误信息收集到map
+            // result.getFieldErrors() 返回一个List集合
+            result.getFieldErrors().forEach((item) -> {
+                // 得到field
+                String field = item.getField();
+                // 得到校验的错误信息
+                String message = item.getDefaultMessage();
+                // 放入到map
+                map.put(field, message);
+            });
+            // 返回收集到的错误信息
+            return R.error(400, "品牌表单数据不合法").put("data", map);
+
+        } else {
+            //如果没有校验错误，就入库
+            brandService.save(brand);
+            return R.ok();
+        }
+    }
+
+```
+
+这里这个 item 就是所谓的接受一个参数, 然后下面的一系列操作也没有返回值因此满足要求
+
+是的，您的理解是正确的。
+
+在这个例子中，`result.getFieldErrors().forEach((item) -> {...})`中的`item`代表`getFieldErrors()`返回的列表中的每个元素。这些元素通常是字段错误的实例，每个实例提供关于特定字段验证失败的详细信息。
+
+这个 lambda 表达式`((item) -> {...})`是作为`Consumer`接口的一个实例被传递给`forEach`方法的。这里的`item`就是您提到的“接受一个参数”的部分，这个参数在每次迭代时代表列表中的当前元素。
+
+在 lambda 表达式的大括号内 `{...}`，您可以定义要对每个元素执行的操作。在您的例子中，这些操作包括：
+
+1. 从`item`中获取字段名称（`String field = item.getField();`）。
+2. 从`item`中获取默认的错误消息（`String message = item.getDefaultMessage();`）。
+3. 将这个字段名称和错误消息放入到一个映射中（`map.put(field, message);`）。
+
+这个过程没有返回值，确实满足`Consumer`接口的要求，该接口的`accept`方法期望接受一个参数并且不返回任何结果。因此，这个 lambda 表达式适合用作`forEach`方法的参数。
+
+# 60 `id`字段在 JSON 数据中既可以接收字符串形式（如`"id": "1"`）也可以接收数字形式（如`"id": 1`）。无论哪种格式，都能正确地封装到 Java 对象的`id`属性中 - Spring 消息转换器
+
+---
+
+## 问题描述
+
+在使用 Spring Boot 进行 Web 开发时，对于一个实体类`BrandEntity`，其中的`id`字段在 JSON 数据中既可以接收字符串形式（如`"id": "1"`）也可以接收数字形式（如`"id": 1`）。无论哪种格式，都能正确地封装到 Java 对象的`id`属性中，即使该属性在 Java 中被定义为`Long`类型。
+
+示例实体类代码：
+
+```java
+@Data
+@TableName("commodity_brand")
+public class BrandEntity implements Serializable {
+    @TableId
+    @NotNull(message = "修改要求指定id", groups = {UpdateGroup.class})
+    @Null(message = "添加不能指定id", groups = {SaveGroup.class})
+    private Long id;
+    // 其他字段略...
+}
+```
+
+示例控制器方法：
+
+```java
+@RequestMapping("/update")
+public R update(@Validated(UpdateGroup.class) @RequestBody BrandEntity brand) {
+    brandService.updateById(brand);
+    return R.ok();
+}
+```
+
+JSON 数据示例：
+
+```json
+{
+    "id": "1",
+    "name": "海信",
+    "isshow": 27
+}
+```
+
+或
+
+```json
+{
+    "id": 1,
+    "name": "海信",
+    "isshow": 27
+}
+```
+
+## 解释
+
+### 类型弹性
+
+JSON 解析器（如 Jackson），使用在 Spring Boot 中，通常提供一定程度的类型弹性。这意味着在解析 JSON 数据并映射到 Java 对象时，如果 JSON 字段的类型与 Java 对象字段的类型不完全匹配，解析器会尝试进行合理的类型转换：
+
+- 如果 JSON 中的`"id"`是一个字符串，但内容可以被解释为长整型（`Long`），如`"1"`，解析器将尝试将这个字符串转换为长整型值。
+- 如果 JSON 中的`"id"`直接提供了一个数字，没有引号，如`1`，则直接适合映射到 Java 中的长整型。
+
+### 自动类型转换
+
+在处理 HTTP 请求体并将其转换为 Java 对象时，Spring 利用 HTTP 消息转换器，这通常涉及调用像 Jackson 这样的库来处理 JSON 数据。这些转换器负责将接收的 JSON 转换成相应的 Java 类型，包括执行任何必要的类型转换。
+
+### 注解和校验
+
+在`BrandEntity`中使用的注解（例如`@NotNull`和`@Null`）主要用于数据校验，并不直接参与到类型转换的过程。校验会在类型转换之后应用，因此只有当`id`字段成功转换为`Long`类型，并且满足校验组条件时，才会视为校验通过。
+
+---
+
+通过以上方式，即可清晰地理解和记录为什么`BrandEntity`的`id`字段可以从 JSON 的两种不同格式正确解析和封装，以及相关的后端处理逻辑。
+
+#
+
+# 61 关于自定校验器 EnumConstraintValidator 和自定义校验注解 @EnumValidate 使用到的 ValidationMessages.properties 属性文件的说明
+
+```
+package com.hspedu.common.valid;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+/**
+ * @author yangda
+ * @create 2024-03-17-19:00
+ * @description: 自定义校验器EnumConstraintValidator
+ * ConstraintValidator<> 自定义校验器需要实现的接口
+ * Constraint: 限制;约束;限定;严管
+ *
+ * 1. EnumConstraintValidator 是真正的校验器，即校验的逻辑是写在这里的
+ * 2. EnumConstraintValidator需要实现接口 ConstraintValidator<A extends Annotation, T>
+ * 3. <EnumValidate,Integer> 表示该校验器是针对 @EnumValidate注解 传入的 Integer类型的数据进行校验
+ */
+public class EnumConstraintValidator implements ConstraintValidator<EnumValidate,Integer> {
+
+
+    @Override
+    public void initialize(EnumValidate constraintAnnotation) {
+        // constraintAnnotation 就是标注在对象属性上的@EnumValidate注解
+        // 通过该注解可以获取到EnumValidate注解的各个属性传入的值
+    }
+
+    // 这里是判断最终校验结果的方法，如果返回true校验成功，如果返回false就是校验失败！
+
+    /**
+     *
+     * @param value 就是将来在前端的表单中传入的数据，即要校验的字段 前端表单字段值 封装到 有EnumValidate注解标注 的对象属性的值
+     * @param context
+     * @return
+     */
+    @Override
+    public boolean isValid(Integer value, ConstraintValidatorContext context) {
+        return false;
+    }
+}
+
+```
+
+```
+package com.hspedu.common.valid;
+
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import javax.validation.constraints.NotNull;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.TYPE_USE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+/**
+ * @author yangda
+ * @create 2024-03-17-18:50
+ * @description: 1. 创建自定义的注解 @EnumValidate 参考@NotNull源码来开发
+ * 2. @Constraint(validatedBy = {EnumConstraintValidator.class}) ,  可以指定该自定义注解可以和EnumConstraintValidator.class校验器关联
+ * 3. String message() default "{?}"; 可以指定校验时返回的信息
+ * 4.  Class<?>[] groups() default { }; 指定以后的自定义注解 @EnumValidate 在哪些校验组生效
+ */
+@Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
+@Retention(RUNTIME)
+@Documented
+@Constraint(validatedBy = {EnumConstraintValidator.class})
+public @interface EnumValidate {
+
+    // String message() default "{javax.validation.constraints.NotNull.message}";
+    // "{javax.validation.constraints.NotNull.message}" 就是默认的message是啥
+    // ，这里指定的是message的key javax.validation.constraints包下的注解的 这个默认的消息是在  ValidationMessages_zh_CN.properties 文件配置如@NotBlank的 javax.validation.constraints.NotBlank.message        = \u4e0d\u80fd\u4e3a\u7a7a
+    String message() default "{com.hspedu.common.valid.EnumValidate.message}";
+
+    Class<?>[] groups() default {};
+
+    Class<? extends Payload>[] payload() default {};
+
+    // 增加values属性
+    int[] values() default {};
+
+}
+
+```
+
+```
+# 该文件配置将来要返回的默认校验信息 这个资源文件的文件名不能乱写 ValidationMessages.properties
+com.hspedu.common.valid.EnumValidate.message=\u663e\u793a\u72b6\u6001\u5fc5\u987b\u662f\u0030\u6216\u8005\u0031
+```
+
+`ValidationMessages.properties`是 Java Bean Validation（JSR 303 和 JSR 349）默认使用的资源文件，用于定义校验消息的本地化字符串。
+
+- **文件名要求**：确实有命名要求。默认情况下，Java Bean Validation 会寻找名为`ValidationMessages.properties`的文件。如果要进行本地化，可以添加语言或国家代码，如`ValidationMessages_zh_CN.properties`用于简体中文。
+- **用途**：在这个文件中，你可以为你的自定义校验注解定义默认错误消息。这些消息通过注解中的`message`属性引用，如`@EnumValidate(message="{com.hspedu.common.valid.EnumValidate.message}")`，则对应的消息应该在`ValidationMessages.properties`中定义。
+- **定义消息**：在`ValidationMessages.properties`文件中，你可以定义键值对，键通常是注解中`message`属性的默认值，值是实际的错误消息，可以包括 Unicode 字符（如`\u663e`表示显示的中文字符）。
+
+### 示例：
+
+假如`ValidationMessages.properties`内容如下：
+
+```properties
+com.hspedu.common.valid.EnumValidate.message=显示状态必须是0或者1
+```
+
+这意味着，当`@EnumValidate`注解的校验失败时，如果没有为特定场景提供具体的消息，将默认使用上述消息。这种机制提供了一种方便的方式来集中管理和本地化校验消息。
+
+综上所述，`payload`属性主要用于扩展信息，通常在日常使用中可以保持默认；而`ValidationMessages.properties`文件是一个重要的资源，用于定义和本地化校验消息，它的命名有固定要求，确保 Bean Validation 能够正确加载和应用这些自定义消息。
+
+# 62 ValidationMessages.properties 的键值对的值可以是汉字吗？为什么 ValidationMessages.properties`文件中会写 Unicode 字符而不是中文？
+
+在`ValidationMessages.properties`文件中，键值对的值确实可以直接使用汉字。但是，在很多情况下，开发者选择使用 Unicode 字符（如`\u4e2d\u6587`代表中文）而非直接书写汉字，主要基于以下几个原因：
+
+1. **编码兼容性**：属性文件默认采用 ISO 8859-1 字符编码（也称为 Latin-1）。这种编码支持的字符集有限，不包括汉字等非西欧字符。如果直接在文件中书写汉字，而文件又是按 ISO 8859-1 编码存储的，那么汉字可能会显示为乱码。使用 Unicode 转义序列（即`\uXXXX`形式的编码）可以确保字符在各种环境下都能正确显示，避免了因编码不一致导致的问题。
+
+2. **跨平台和环境一致性**：不同的编辑器、操作系统或 Java 环境可能对文件编码的默认处理有所不同。使用 Unicode 确保了在任何环境下，无论是 Windows、Linux 还是其他操作系统，文件中的文本都能被正确解析和显示。
+
+3. **易于版本控制和比较**：当`.properties`文件被存储在版本控制系统中时（如 Git），使用 Unicode 字符可以减少因字符编码差异导致的差异比较问题。它使得文本内容在各种工具和环境下的显示更加一致。
+
+尽管直接使用汉字在很多现代 IDE 和构建工具中能够正常工作，因为这些工具可能会自动处理编码问题，但使用 Unicode 转义字符依然是一种更安全且兼容性更好的做法。
+
+如果您想在`ValidationMessages.properties`中直接使用汉字，确保您的编辑器或 IDE 将文件保存为 UTF-8 编码，并且您的构建工具或运行环境支持这种编码设置。但请记住，即使这样，提交到版本控制系统时仍可能遇到问题，除非您确保整个工作团队的环境都配置得当。因此，为了安全起见，许多开发者仍然倾向于使用 Unicode 转义字符。
+
+# 63 为什么属性文件大多使用 Unicode 编码定义键值对的值？
+
+使用 Markdown 格式，下面是关于为什么属性文件（如 Java 中的`.properties`文件）大多使用 Unicode 编码来定义键值对的值的总结：
+
+---
+
+## 使用 Unicode 编码定义键值对的值
+
+在 Java 的`.properties`文件中，键值对的值经常使用 Unicode 编码（`\uXXXX`），主要基于以下几个考虑：
+
+### 1. 编码兼容性
+
+- `.properties`文件默认使用 ISO 8859-1（Latin-1）字符编码。
+- ISO 8859-1 编码不支持汉字等非西欧字符集。
+- 使用 Unicode 转义序列（`\uXXXX`格式）可以避免在不支持汉字的字符编码下出现乱码。
+
+### 2. 跨平台一致性
+
+- 不同的编辑器、操作系统或 Java 环境可能对文件编码的默认处理不同。
+- 使用 Unicode 转义序列确保字符在所有环境（如 Windows、Linux 等）中都能正确解析和显示。
+
+### 3. 版本控制友好
+
+- 在版本控制系统（如 Git）中，使用 Unicode 字符减少了因编码差异导致的差异比较问题。
+- Unicode 字符使得文件更易于在不同环境下维护和比较。
+
+### 4. 环境配置的简化
+
+- 直接使用汉字需要确保环境（编辑器、构建工具、运行时）均支持并正确配置为 UTF-8 或其他兼容的编码。
+- 使用 Unicode 转义字符，无需特别配置环境即可保证字符的正确显示。
+
+### 结论
+
+虽然在很多现代开发环境中，直接使用汉字在`.properties`文件中可以正常工作，使用 Unicode 转义序列依然被视为一种更通用、更安全的做法。这种方法在处理国际化资源文件时尤为重要，确保无论在什么环境下，文件都能被正确解析和使用。
+
+---
+
+通过遵循上述建议，可以保证`.properties`文件在不同环境中的兼容性和一致性，避免因编码问题导致的错误和混淆。
