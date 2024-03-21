@@ -1,0 +1,422 @@
+# 70 `page` 方法是通过 MyBatis Plus 实现自动分页的核心方法
+
+在 MyBatis Plus 中进行分页操作的那部分代码是这一行：
+
+```java
+public class AttrgroupServiceImpl extends ServiceImpl<AttrgroupDao, AttrgroupEntity> implements AttrgroupService {
+
+ @Override
+    public PageUtils queryPage(Map<String, Object> params, Long categoryId) {
+
+    IPage<AttrgroupEntity> page = this.page(
+        new Query<AttrgroupEntity>().getPage(params),
+        wrapper
+    );
+    ...
+
+```
+
+在这段代码中：
+
+1. `this.page(...)` 方法是 MyBatis Plus 提供的，用于执行分页查询。`this` 在这里指的是当前的服务类 `AttrgroupServiceImpl` 的实例，它继承自 `ServiceImpl<AttrgroupDao, AttrgroupEntity>`，而 `ServiceImpl` 类提供了 `page` 方法，用于执行分页查询。因此，这里的 `this` 实际上就是指当前的服务实例，它继承了 `ServiceImpl` 从而具有执行分页查询的能力。
+
+2. `new Query<AttrgroupEntity>().getPage(params)` 是创建一个分页查询条件，其中 `Query` 是一个工具类，它根据传入的参数 `params`（这些参数一般包括分页的信息，如当前页和每页大小等），构造出一个 `IPage<AttrgroupEntity>` 类型的对象，这个对象表示分页请求的信息。
+
+3. `wrapper` 是一个 `QueryWrapper<AttrgroupEntity>` 类的实例，它定义了查询的条件。如果 `wrapper` 没有指定任何条件，那么 `page` 方法将会返回所有记录的分页结果。
+
+因此，`this.page(...)` 这行代码是执行分页操作的核心，它结合了分页信息和查询条件，进行数据库查询，并返回查询结果。这里的 `page` 方法是通过 MyBatis Plus 实现自动分页的核心方法，通过它可以非常方便地实现复杂的分页逻辑。
+
+# 71 Long a = 0L, a.equals(0) 结果是多少？为什么
+
+表达式 `a.equals(0)` 的结果是 `false`。
+
+原因在于 `a` 是一个 `Long` 类型的对象，而 `0` 是一个 `int` 类型的值。在 Java 中，当你调用 `equals` 方法比较两个对象时，它们需要是相同的类型或者具有兼容的类型关系。
+
+在这种情况下，`0` 被自动装箱成一个 `Integer` 对象（而不是 `Long`），因为字面量 `0` 默认是 `int` 类型的。因此，你实际上是在尝试使用 `Long` 类型的对象调用 `equals` 方法来比较一个 `Integer` 对象。由于 `Long` 和 `Integer` 是不同的类型，它们的 `equals` 方法会首先检查另一个对象是否也是相同的类型。在这种情况下，类型不匹配，所以结果是 `false`。
+
+如果你想要比较它们的数值是否相等，你应该确保它们都是相同的类型，或者直接比较它们的基本类型值，例如：
+
+```java
+long b = 0L; // 注意这里使用基本类型 long
+boolean result = (a == b); // 将会是 true，因为这里比较的是数值
+```
+
+或者，如果你确实需要比较两个对象，并且你知道一个是 `Long` 而另一个是 `Integer`，你可以将它们都转换为相同的类型（例如都转换为 `Long`），或者比较它们的基本类型值：
+
+```java
+Long b = 0L; // 使用 Long 类型
+boolean result = a.equals(b); // 将会是 true
+```
+
+或者：
+
+```java
+boolean result = a.longValue() == 0; // 将会是 true，因为比较的是基本类型的值
+```
+
+这样可以确保比较是公平的，并且是基于数值而非类型。
+
+# 72 集合转数组：`toArray()`
+
+Java 集合框架提供了一种将集合转换为数组的方法，`toArray()`. 这个方法有两种形式：
+
+1. **无参方法**: `Object[] arr = coll.toArray();`
+
+   - 这种形式返回的是 `Object[]` 类型的数组。如果你的集合 `coll` 包含不同类型的对象，或者你不需要特定类型的数组，这种方式是合适的。
+
+2. **有参方法**: `T[] arr = coll.toArray(new T[0]);`
+
+   - 这种形式允许你指定返回的数组的具体类型。例如，如果你想要一个 `Long[]` 类型的数组，你可以这样做:
+
+     ```java
+     Long[] longArray = coll.toArray(new Long[0]);
+     ```
+
+   - 尽管这里使用的是长度为 0 的数组，但 Java 会根据集合的大小自动创建一个新的数组，这是一种常用的 Java 惯用法。这意味着，即使是 `new Long[0]`，实际返回的数组会有与 `coll` 集合相同数量的元素。
+
+### 集合的反转：`Collections.reverse(List)`
+
+`Collections.reverse(List)` 是一个用于反转 Java 中 `List` 集合元素顺序的方法。这个方法会直接在传入的 `List` 上进行操作，导致 `List` 中的元素顺序被反转，因此原始的 `List` 会被修改。
+
+例如：
+
+```java
+List<String> list = new ArrayList<>();
+list.add("tom");
+list.add("smith");
+list.add("king");
+list.add("milan");
+list.add("tom");
+Collections.reverse(list);
+System.out.println("list=" + list); // 输出的 list 将会是原始顺序的反转
+```
+
+在这个例子中，`list` 中的元素顺序将会被改变。
+
+### 总结
+
+1. **`toArray()` 方法**:
+
+   - 用于将集合转换为数组，有两种形式：无参和有参。
+   - 无参形式返回 `Object[]`，有参形式可以指定返回数组的类型，如 `Long[]`。
+   - 即使指定的数组大小为 0，Java 会根据需要自动调整数组大小。
+
+2. **`Collections.reverse(List)` 方法**:
+   - 用于反转 List 中的元素顺序。
+   - 直接修改原始 List，改变其元素顺序。
+
+在使用 `toArray()` 方法转换集合为特定类型数组时，通常使用 `new T[0]` 作为参数来避免类型转换问题，即使这个数组长度为 0，方法依然有效。`Collections.reverse(List)` 提供了一种直接在原始列表上反转元素顺序的快捷方式。
+
+# 73 在 Vue.js 中，组件的声明、引用、和命名遵循两种常用约定大驼峰式命名和短横线分隔命名
+
+在 Vue.js 中，组件的声明、引用、和命名遵循两种常用约定：
+
+1. **Kebab-case (短横线分隔命名):**
+
+   - 主要用于 HTML 模板中。
+   - 示例：`<add-or-update></add-or-update>`
+   - 推荐此格式避免 HTML 和 XHTML 兼容性问题，因为它们不区分大小写。
+
+2. **PascalCase (大驼峰式命名):**
+   - 主要用于 JavaScript/TypeScript 文件中的导入及 JSX/TSX 中。
+   - 示例：`<AddOrUpdate></AddOrUpdate>`
+   - 在 Vue 的单文件组件 (SFC) 的模板中，也支持此格式。Vue 会正确识别并渲染对应的组件。
+
+**导入组件示例**:
+
+```javascript
+import AddOrUpdate from './AddOrUpdate.vue'
+```
+
+**组件导出声明**:
+
+```javascript
+export default {
+  components: {
+    'add-or-update': AddOrUpdate
+  }
+}
+```
+
+**总结**:
+Vue 支持在模板中使用这两种命名方式。根据个人或团队的偏好选择使用。但官方文档推荐在 HTML 模板中使用 kebab-case 来维持一致性。
+
+#
+
+# 74 Vue 的级联选择器 `el-cascader`
+
+```
+项目中的代码
+
+ <!-- 引入Cascader级联选择器
+      老师解读
+      1. 在添加选择所属分类 ID 时，我们使用了 Cascader 级联选择器, 具体用法参考
+        elementui-Cascader 级联选择器-基础用法
+      2. v-model="cascadedCategoryId" : 是最终绑定的值,因为 el-cascader 关联的
+        v-model 是一个数组，记录的是三级分类全部 id,即[第 1 级分类 id,第 2 级分类 id
+        ,第 3 级分类 id], 比如[1,21,301]因此在数据池的 categoryId 是一个数组
+      3. :options="categories" 表示级联显示的时候各个层的选值是从 categories 数组来的
+      4. :props="props" 显示的选项值(value)/显示的标签(label)/子选项(children) 分别和
+        返回的 category 的对象的哪个字段关联。简单地说就是
+        props指定options数据源(categories)的哪些数据绑定到v-model(cascadedCategoryId)的数据中来
+        props中的value属性，是每一级选中的项的 id 属性（也就是 props 中定义的 value 字段）。'1', '21', '301'
+      5.v-model 则是存储用户选择的整个路径的标识值数组['1', '2', '3']
+      -->
+      <el-cascader
+        v-model="cascadedCategoryId"
+        :options="categories"
+        :props="props"
+        ></el-cascader>
+
+
+
+
+export default {
+    data () {
+      return {
+categories: [], // 商品分类列表，带层级的数据 作为级联选择器cascader的数据源
+        cascadedCategoryId: [], // 级联选择器cascader v-model 的值  [1,21,301] 该数据从categories中获取
+
+        /**
+         * 当我们配置 el-cascader 的 props，我们实际上是告诉组件如何从 categories 数组中的每个对象里提取相应的数据(如对象的id属性)来显示和组织级联选择器的结构。
+         * props中的value属性，是每一级选中的项的 id 属性（也就是 props 中定义的 value 字段）。'1', '21', '301'
+         */
+        props: { // 显示级联菜单的属性指定
+          value: "id",
+          label: "name",
+          children: "childrenCategories"
+        },
+```
+
+当你在 Vue 的级联选择器 `el-cascader` 中指定 `props` 的 `value`、`label` 和 `children`，这些是用来定义级联选择器如何从提供的数据源 `:options="categories"` 中读取具体的值：
+
+- `value: "id"`：表示级联选择器的值字段对应 `categories` 数组中每个对象的 `id` 属性。
+- `label: "name"`：表示级联选择器的显示文本对应 `categories` 数组中每个对象的 `name` 属性。
+- `children: "childrenCategories"`：表示级联选择器的子级列表对应 `categories` 数组中每个对象的 `childrenCategories` 属性，这是一个递归的关系，用于渲染多级结构。
+
+这里的数组 `categories` 是一个多级（层级）结构的数组，每个元素可能包含子元素列表，这些子元素通过 `childrenCategories` 字段进行关联。因此，当你配置了 `el-cascader` 的 `props` 如上所示，`el-cascader` 就能理解如何从这样结构化的数据源中提取显示的标签、值以及子级列表。
+
+实际上，`el-cascader` 需要的数据格式类似于以下结构：
+
+```javascript
+[
+  {
+    id: 1,
+    name: "电子产品",
+    childrenCategories: [
+      {
+        id: 11,
+        name: "手机",
+        childrenCategories: [{ id: 111, name: "智能手机" }, { id: 112, name: "功能手机" }]
+      },
+      {
+        id: 12,
+        name: "电脑",
+        childrenCategories: [{ id: 121, name: "笔记本电脑" }, { id: 122, name: "台式电脑" }]
+      }
+    ]
+  },
+  // 更多分类...
+]
+```
+
+在这个例子中，每个对象的 `id` 和 `name` 直接映射到级联选择器的值和显示文本，而 `childrenCategories` 映射到子级列表。因此，尽管 `categories` 是一个数组，但每个元素通过指定的字段（`id`, `name`, `childrenCategories`）与级联选择器的结构相匹配，使得 `el-cascader` 能够理解并正确渲染数据。
+
+是的，你的理解是正确的。在 `el-cascader` 组件的 `props` 配置中：
+
+- `value: "id"` 是告诉 `el-cascader` 组件，对于 `options` 中的每个条目（即 `categories` 数组中的每个对象），其值（value）是通过该对象的 `id` 属性来确定的。
+- `label: "name"` 则告诉 `el-cascader` 组件，对于 `options` 中的每个条目，其显示的文本是通过该对象的 `name` 属性来确定的。
+- `children: "childrenCategories"` 告诉 `el-cascader` 组件，对于 `options` 中的每个条目，其子选项是通过该对象的 `childrenCategories` 属性来确定的。
+
+因此，`value: "id"` 并不是直接从 `categories.id` 获取值，而是在 `categories` 数组中的每个对象里查找名为 `id` 的属性来获取其值。这种方式使得 `el-cascader` 可以从具有嵌套结构的数据源中正确读取并展示数据。
+
+当我们说“该对象”，我们指的是 `categories` 对象数组中的每一个独立对象。在 `el-cascader` 组件的 `props` 配置里：
+
+- `value: "id"` 指的是，对于 `categories` 数组中的每个对象，`el-cascader` 组件会使用该对象的 `id` 属性作为选项的值。
+- `label: "name"` 指的是，对于 `categories` 数组中的每个对象，`el-cascader` 组件会使用该对象的 `name` 属性作为显示给用户的标签。
+- `children: "childrenCategories"` 指的是，对于 `categories` 数组中的每个对象，`el-cascader` 组件会查找该对象的 `childrenCategories` 属性，用作该选项的子级菜单。
+
+因此，当我们配置 `el-cascader` 的 `props`，我们实际上是告诉组件如何从 `categories` 数组中的每个对象里提取相应的数据来显示和组织级联选择器的结构。
+
+在 `el-cascader` 组件的 `props` 中的 `value` 属性并不直接绑定到 `v-model` 的值。实际上，`v-model` 在 `el-cascader` 中绑定的是用户选择的路径数组，也就是说，它反映了用户从级联选择器中选择的每一级的 `value` 属性的值。
+
+举个例子，如果你的级联选择器数据（即 `categories`）如下所示：
+
+```javascript
+[
+  {
+    id: '1',
+    name: '电子产品',
+    childrenCategories: [
+      {
+        id: '2',
+        name: '手机',
+        childrenCategories: [
+          { id: '3', name: '智能手机' },
+          { id: '4', name: '功能手机' }
+        ]
+      }
+    ]
+  },
+  // 其他顶级分类...
+]
+```
+
+并且用户在级联选择器中选择了“电子产品 > 手机 > 智能手机”，那么：
+
+- `v-model` 绑定的数组将会是 `['1', '2', '3']`。
+- 这里的 `'1'`, `'2'`, `'3'` 就是从每一级选中的项的 `id` 属性（也就是 `props` 中定义的 `value` 字段）。
+
+所以，`props` 中的 `value` 定义的是如何从每个选项对象中获取该选项的标识值（比如 `id`），而 `v-model` 则是存储用户选择的整个路径的标识值数组。
+
+# 75 @JsonInclude(JsonInclude.Include.NON_EMPTY)注解的作用
+
+`@JsonInclude(JsonInclude.Include.NON_EMPTY)` 是一个来自 Jackson 库的注解，用在 Java 对象的属性上。在这个上下文中，它被应用到 `childrenCategories` 属性上。
+
+这个注解的作用是在将 Java 对象序列化为 JSON 时，对该属性的处理进行特定的设定。具体来说，`JsonInclude.Include.NON_EMPTY` 参数指定如果 `childrenCategories` 属性是空（空集合或空数组），则在生成的 JSON 中不包含这个属性。
+
+这意味着，如果 `childrenCategories` 是一个空列表（没有子类别），那么在序列化包含这个属性的对象时，`childrenCategories` 字段将被省略，不会出现在结果 JSON 字符串中。这样做可以减少 JSON 的大小，使输出更加简洁。
+
+# 76 Vue 中在父组件直接调用子组件方法池中的方法
+
+在 Vue.js 中，父组件可以直接调用子组件中定义的方法。这通常通过使用 `ref` attribute 来引用子组件，然后在父组件的 JavaScript 代码中通过 `this.$refs` 访问这些子组件，最后调用其方法。以下是一个详细的说明和示例：
+
+### 1. 定义子组件
+
+首先，定义一个子组件，并在其 `<script>` 部分中声明一些方法。例如，创建一个名为 `ChildComponent.vue` 的文件，内容如下：
+
+```vue
+<template>
+  <div>子组件内容</div>
+</template>
+
+<script>
+export default {
+  methods: {
+    // 定义一个名为 'showMessage' 的方法
+    showMessage() {
+      alert("这是子组件的方法被调用");
+    }
+  }
+}
+</script>
+```
+
+### 2. 使用子组件并定义引用
+
+在父组件中使用子组件，并通过 `ref` 属性为其定义一个引用名称。这样可以在父组件中通过 `this.$refs` 访问该子组件。例如：
+
+```vue
+<template>
+  <div>
+    <button @click="callChildMethod">调用子组件方法</button>
+    <!-- 使用子组件，并赋予 ref -->
+    <ChildComponent ref="childRef" />
+  </div>
+</template>
+
+<script>
+import ChildComponent from './ChildComponent.vue';
+
+export default {
+  components: {
+    ChildComponent
+  },
+  methods: {
+    callChildMethod() {
+      // 使用 this.$nextTick 确保 DOM 更新完成后调用子组件方法
+      this.$nextTick(() => {
+        this.$refs.childRef.showMessage();
+      });
+    }
+  }
+}
+</script>
+```
+
+### 3. 调用子组件方法
+
+在父组件中，你可以通过 `this.$refs.childRef` 访问子组件实例，并调用其方法，例如 `showMessage`。使用 `this.$nextTick()` 可以确保所有的 DOM 更新已经完成，这对于在 DOM 更新后立即执行依赖于 DOM 的操作特别重要。
+
+在 Vue.js 中，`this.$refs` 用于访问组件实例中定义的引用(refs)。当你需要在父组件中直接调用子组件的方法时，可以通过 `ref` 属性来标识子组件，并使用 `this.$refs` 加上对应的引用名来访问这个子组件实例。以下是具体的示例和说明：
+
+### 子组件定义
+
+假设你有一个子组件 `ChildComponent.vue`，它定义了一个方法 `showMessage`：
+
+```vue
+<template>
+  <div>子组件内容</div>
+</template>
+
+<script>
+export default {
+  methods: {
+    showMessage() {
+      alert("子组件的方法被调用");
+    }
+  }
+}
+</script>
+```
+
+### 父组件使用子组件
+
+在父组件中，你将使用 `ChildComponent` 并给它一个 `ref` 属性：
+
+```vue
+<template>
+  <div>
+    <button @click="callChildMethod">调用子组件方法</button>
+    <ChildComponent ref="childRef" />
+  </div>
+</template>
+
+<script>
+import ChildComponent from './ChildComponent.vue';
+
+export default {
+  components: {
+    ChildComponent
+  },
+  methods: {
+    callChildMethod() {
+      // 直接调用子组件的方法
+      this.$refs.childRef.showMessage();
+    }
+  }
+}
+</script>
+```
+
+在上面的父组件示例中，`<ChildComponent ref="childRef" />` 表明了子组件 `ChildComponent` 的实例可以通过 `this.$refs.childRef` 访问。然后，在父组件的 `callChildMethod` 方法中，我们直接调用了子组件的 `showMessage` 方法。
+
+### 使用 this.$nextTick()
+
+在某些情况下，你可能需要确保所有的 DOM 更新都已完成后再调用子组件的方法。这通常在你刚刚更改了数据，而这些数据的更改会影响 DOM 结构时发生。在这种情况下，可以使用 `this.$nextTick()`：
+
+```javascript
+methods: {
+  callChildMethod() {
+    this.someData = 'New Data'; // 假设这会影响子组件的DOM
+    this.$nextTick(() => {
+      // 现在DOM已经更新完成
+      this.$refs.childRef.showMessage();
+    });
+  }
+}
+```
+
+在这个修改后的 `callChildMethod` 方法中，我们首先更改了一些数据（这会影响 DOM）。然后我们使用 `this.$nextTick()` 来确保我们调用子组件的 `showMessage` 方法是在 Vue 更新 DOM 之后。这样，如果 `showMessage` 方法依赖于最新的 DOM 结构或数据，它可以得到正确执行。
+
+通过上述方法，父组件可以在合适的时机安全地调用子组件的方法，而无需担心 DOM 更新的同步问题。
+
+### 总结
+
+- 使用 `ref` 属性给子组件一个引用名，在父组件中通过 `this.$refs.refName` 访问子组件实例。
+- 在子组件中定义方法，在父组件中可以通过引用名调用这些方法。
+- 使用 `this.$nextTick()` 确保在 DOM 更新完成后执行方法调用，尤其是当方法依赖于最新的 DOM 结构时。
+
+通过上述步骤，父组件可以方便地直接调用子组件的方法，实现组件间的交互和数据传递。这种模式在 Vue.js 中是常见的，它利用了 Vue.js 的反应性系统和组件化架构，使得组件间的通信更加直接和高效。
+
+# 77
